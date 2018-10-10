@@ -490,13 +490,13 @@
 															<div class="control-group">
 																<label class="control-label" for="fileInput">上传文件</label>
 																<div class="controls">
-																	<input class="file-no-style" id="fileInput2" type="file" />
+																	<input class="file-no-style" name="reFile" id="fileInput2" type="file" />
 																</div>
 															</div>
 															<div class="control-group info">
 																<label class="control-label" for="inputInfo">源文本模板</label>
 																<div class="controls">
-																	<input type="text" id="reCount" class="span12 textTemp" />
+																	<input type="text" name="reStrTemp" id="reCount" class="span12 textTemp" />
 																	<span class="help-inline textTempSpan">设置源文本模板</span>
 																	<span class="help-inline textTempSpan"></span>
 																</div>
@@ -504,7 +504,7 @@
 															<div class="control-group success">
 																<label class="control-label" for="inputSuccess">目标文本模板</label>
 																<div class="controls">
-																	<input type="text" id="deCount" class="span12 textTemp" />
+																	<input type="text" name="deStrTemp" id="deCount" class="span12 textTemp" />
 																	<span class="help-inline textTempSpan">设置目标文本模板</span>
 																</div>
 															</div>
@@ -561,9 +561,9 @@
 															<div class="btn-group">
 																	<button class="btn dropdown-toggle medium" data-toggle="dropdown">下载文件类型 <span class="caret"></span></button>
 																	<ul class="dropdown-menu btn-small">
-																		<li><a href="javascript:void(0);">Favorite it</a></li>
-																		<li><a href="javascript:void(0);">Reload page</a></li>
-																		<li><a href="javascript:void(0);">Attach something</a></li>
+																		<li><a href="javascript:void(0);">txt</a></li>
+																		<li><a href="javascript:void(0);">sql</a></li>
+																		<li><a href="javascript:void(0);">xml</a></li>
 																	</ul>
 																</div>
 																<input id="prependedDropdownButton" type="text" placeholder=".txt" />

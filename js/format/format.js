@@ -167,5 +167,37 @@ function downloadResultText() {
  * 提交后台获取结果字符串
  */
 function submitForm() {
-    
+    var url = '';
+    $('button[type=button]').on('click', function(e) {
+        var formData = new FormData();
+        // formData.append(name, element);
+        formData.append('reFile', $('input[name=reFile]')[0].files[0]); //源文本文件
+        formData.append('reStrTemp', $('input[name=reStrTemp]')[0].val()); //源文本模板
+        formData.append('deStrTemp', $('input[name=reFile]')[0].val());//目标文本模板
+
+        $.ajax({
+              url: url,
+              method: 'POST',
+                  data: formData,
+                  contentType: false,
+                  processData: false,
+                  cache: false,
+                  success: function(data) {
+                      // TODO 将文本输出到textarea上
+                      alert(data + "上传成功");
+                  },
+                  error: function (jqXHR) {
+                      console.log(JSON.stringify(jqXHR));
+                  }
+              })
+              .done(function(data) {
+                  console.log('done');
+              })
+              .fail(function(data) {
+                  console.log('fail');
+              })
+              .always(function(data) {
+                  console.log('always');
+        });
+    });
 }
