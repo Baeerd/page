@@ -15,10 +15,25 @@ $(function() {
      */
     submitForm();
 
+    /**
+     * 监听生成文本模板下拉框
+     */
+    autoShowTempListener();
+
+    /**
+     * 重置模板按钮监听
+     */
+    resetTempListener();
+
 });
 
+/*========================全局变量=====================================*/
 var reCount = 1;
 var deCount = 1;
+var msgSpace = $("#formatTextMsg");
+var params = {};
+/*========================全局变量=====================================*/
+
 
 /**
  * 源文本模板输入框监听
@@ -43,23 +58,19 @@ function reTextTemplateListener() {
             }
             $(this).val(resultStr);
             printHtml($(this).next(), resultStr);
-            // $(this).next().html(resultStr);
         }
     });
 
     $(".textTemp").change(function() {
         var inputInfoVal =  $(this).val();
         if(!inputInfoVal) {
-            reCount = 1;
-            deCount = 1;
-            lastTxt = '';
-            $(this).next().html("设置源文本模板");
-            $(this).next().next().html("");
+            //重置模板
+            resetTemp();
             return;
         }
         lastTxt = getSpanHtml($(this).next().html());
-        // lastTxt = getSpanHtml($(this).next());
         $(this).next().html(inputInfoVal);
+        clean(msgSpace);
     }); 
 }
 
@@ -87,15 +98,22 @@ function replaceDiff(reText, deText, event) {
     var deTextArr = deText.split('');
     var changeFlag = false;
     for(var i=0; i<reTextArr.length; i++) {
+        if(i>0 && reTextArr[i-1] != reTextArr[i]) {
+            changeFlag = true;
+        }
         // 比较字符是否相等
         if(reTextArr[i] != deTextArr[i] && deTextArr[i] != undefined) {
             changeFlag = true;
             break;
         }
+        if(i == deTextArr.length) {
+            break;
+        }
     }
     // 如果全部相同没有更改
-    if(!changeFlag) {
-        alert("模板字符全部相同，重新填写源文本");
+    
+    if(!changeFlag && reText.indexOf("#") == -1) {
+        log(msgSpace, "模板字符全部相同，重新填写源文本");
         return;
     }
     var diffStr = reText.substr(i, diffLength);//需要替换的字符串
@@ -124,8 +142,8 @@ function replaceDiff(reText, deText, event) {
  * @param {} event 
  */
 function getSpanHtml(str) {
-    str = str.replace("<font color='red'>", "").replace("</font>", "");
-    str = str.replace('<font color="red">', '').replace('</font>', '');
+    str = str.replaceAll("<font color='red'>", "").replaceAll("</font>", "");
+    str = str.replaceAll('<font color="red">', '').replaceAll('</font>', '');
     return str;
 }
 
@@ -167,37 +185,252 @@ function downloadResultText() {
  * 提交后台获取结果字符串
  */
 function submitForm() {
-    var url = '';
-    $('button[type=button]').on('click', function(e) {
-        var formData = new FormData();
-        // formData.append(name, element);
-        formData.append('reFile', $('input[name=reFile]')[0].files[0]); //源文本文件
-        formData.append('reStrTemp', $('input[name=reStrTemp]')[0].val()); //源文本模板
-        formData.append('deStrTemp', $('input[name=reFile]')[0].val());//目标文本模板
+    $("#submitFormBtn").click(function() {
+        var tempOutTextarea = $("#tempOutTextarea").val();
+        var reFileInputId = $("#reFileInputId").val();
+        // 如果没有上传的文件，检查是否在文本域输入值，存在则转换文本域中的值
+        // 如果存在文件，则访问后台，上传文件
+        if(reFileInputId) {
+            var url = "";
+            // TODO ajax上传表单到后台
+            var formData = new FormData();
+            // formData.append(name, element);
+            formData.append('reFile', $('input[name=reFile]')[0].files[0]); //源文本文件
+            formData.append('reStrTemp', $('input[name=reStrTemp]')[0].val()); //源文本模板
+            formData.append('deStrTemp', $('input[name=reFile]')[0].val());//目标文本模板
 
-        $.ajax({
-              url: url,
-              method: 'POST',
-                  data: formData,
-                  contentType: false,
-                  processData: false,
-                  cache: false,
-                  success: function(data) {
-                      // TODO 将文本输出到textarea上
-                      alert(data + "上传成功");
-                  },
-                  error: function (jqXHR) {
-                      console.log(JSON.stringify(jqXHR));
-                  }
-              })
-              .done(function(data) {
-                  console.log('done');
-              })
-              .fail(function(data) {
-                  console.log('fail');
-              })
-              .always(function(data) {
-                  console.log('always');
-        });
+            $.ajax({
+                url: url,
+                method: 'POST',
+                    data: formData,
+                    contentType: false,
+                    processData: false,
+                    cache: false,
+                    success: function(data) {
+                        // TODO 将文本输出到textarea上
+                        alert(data + "上传成功");
+                    },
+                    error: function (jqXHR) {
+                        console.log(JSON.stringify(jqXHR));
+                    }
+                })
+                .done(function(data) {
+                    console.log('done');
+                })
+                .fail(function(data) {
+                    console.log('fail');
+                })
+                .always(function(data) {
+                    console.log('always');
+            });
+        } else if(!reFileInputId && tempOutTextarea) {
+            // 没有上传文件，并且文本域中有值，则解析文本域中的文本
+            var reTemp = $("#reCount").val();
+            var deTemp = $("#deCount").val();
+            var resultStr = formatText(tempOutTextarea, reTemp, deTemp);
+            $("#tempOutTextarea").val(resultStr);
+        } else {
+            return;
+        }
     });
+
+}
+
+ /**
+ * 监听生成文本模板下拉框
+ */
+function autoShowTempListener() {
+    // 监听下拉框
+    $(".tempFormatInstance").click(function() {
+        var cutStr = $(this).html().substr(0,1); //分隔符
+        $("#replaceStrInput").val(cutStr);
+        // 更改源模板文本框
+        var resultStr = changeReTempInput(cutStr);
+        $("#reCount").val(resultStr);
+        printHtml($("#reCount").next(), resultStr);
+
+    });
+    // 监听自定义分隔符文本框
+    $("#replaceStrInput").keyup(function(event) {
+        if(event.keyCode == 13) {
+            var cutStr = $(this).val();
+            if(!cutStr) {
+                clean(msgSpace);
+                return;
+            }
+            if(cutStr == '#') {
+                log(msgSpace, "分隔符不能为#");
+                return;
+            }
+            var resultStr = changeReTempInput(cutStr);
+            $("#reCount").val(resultStr);
+            printHtml($("#reCount").next(), resultStr);
+        }
+    });
+    $("#replaceStrInput").blur(function () {
+        var cutStr = $(this).val();
+        if(!cutStr) {
+            clean(msgSpace);
+            return;
+        }
+        if(cutStr == '#') {
+            log(msgSpace, "分隔符不能为#");
+            return;
+        }
+        var resultStr = changeReTempInput(cutStr);
+        $("#reCount").val(resultStr);
+        printHtml($("#reCount").next(), resultStr);
+    });
+    // 监听自定义去除字符文本框
+    $("#preCutInput").blur(function() {
+        var preStr = $(this).val();
+        var resultStr = $("#reCount").val();
+        if(!preStr) {
+            clean(msgSpace);
+            return;
+        }
+        if(!resultStr) {
+            log(msgSpace, "源文本框没有值");
+            return;
+        }
+        if(resultStr.indexOf(preStr) == -1) {
+            log(msgSpace, "源文本模板不包含去除字段："+preStr);
+
+        }
+        resultStr = resultStr.replaceAll(preStr, "");
+        $("#reCount").val(resultStr);
+    });
+    $("#preCutInput").keyup(function(event) {
+        if(event.keyCode == 13) {
+            var preStr = $(this).val();
+        var resultStr = $("#reCount").val();
+        if(!preStr) {
+            clean(msgSpace);
+            return;
+        }
+        if(!resultStr) {
+            log(msgSpace, "源文本框没有值");
+            return;
+        }
+        if(resultStr.indexOf(preStr) == -1) {
+            log(msgSpace, "源文本模板不包含去除字段："+preStr);
+
+        }
+        resultStr = resultStr.replaceAll(preStr, "");
+        $("#reCount").val(resultStr);
+        }
+    });
+}
+
+/**
+ * 更改源模板文本框
+ * @param {分隔符} cutStr 
+ */
+function changeReTempInput(cutStr) {
+    // 获取源文本模板文本框的值
+    var reTempInput = $("#reCount").val();
+    if(!reTempInput) {
+        log(msgSpace, "源文本框没有值");
+        return;
+    }
+    var c = 1;
+    var cutStrArr = reTempInput.split(cutStr);
+    if(cutStrArr.length == 1) {
+        log(msgSpace, "模板不存在此分隔符："+cutStr);
+        return reTempInput;
+    }
+    
+    for(var i=0; i<cutStrArr.length; i++) {
+        reTempInput = reTempInput.replace(cutStrArr[i], c < 10 ? "#0"+c : "#"+c);
+        c++;
+    }
+    reCount = c;
+    clean(msgSpace);
+    return reTempInput;
+}
+
+/**
+ * 重置模板按钮监听
+ */
+function resetTempListener() {
+    $("#resetTemp").click(function() {
+        resetTemp();
+    });
+}
+
+/**
+ * 重置
+ */
+function resetTemp() {
+    reCount = 1;
+    deCount = 1;
+    lastTxt = '';
+    $(".textTempSpan:eq(0)").html("设置源文本模板");
+    $(".textTempSpan:eq(1)").html("");
+    $(".textTempSpan:eq(2)").html("设置目标文本模板");
+    $("#reCount").val("");
+    $("#deCount").val("");
+    // 清空文本域
+    $("#tempOutTextarea").val("");
+    $("#reFileInputId").val("");
+}
+
+/**
+ * 按模板生成字符串
+ * @param {内容} msg 
+ * @param {源模板} reTemp 
+ * @param {目标模板} deTemp 
+ */
+function formatText(msg, reTemp, deTemp) {
+    var msgArr = msg.split("\n");
+    var resultStr = "";
+    for(var i=0; i<msgArr.length; i++) {
+        replaceStr(reTemp, msgArr[i]);
+        console.log(params);
+        var result = deTemp;
+        for(var key in params) {
+            result = result.replace(key, params[key]);
+        }
+        resultStr += result+"\r\n";
+        // 清空params
+        params = {};
+    }
+    return resultStr;
+}
+
+/**
+ * 生成占位符与实际值对应关系
+ * @param {*} reTemp 
+ * @param {*} value 
+ */
+function replaceStr(reTemp, value) {
+
+    var firIndex = reTemp.indexOf("#");
+    if(firIndex == -1) {
+        return;
+    }
+    var firStr = value.substring(firIndex);// 变量实际值开头 a,b,a,a,c,a,
+    var endIdex = reTemp.substring(firIndex+1).indexOf("#");//第二个#变量位置
+    // 如果为最后一个变量则没有第二个变量位置，直接取变量末尾值
+    var resultValue = "";
+    if(endIdex == -1) {
+        var endStr = reTemp.substring(firIndex+1).substring(2);// 第一个变量与第二个变量中间位置字符串
+        if(!endStr) {
+            resultValue = firStr.substring(0);// 第一个变量实际值
+        } else {
+            if(firStr.indexOf(endStr) == -1) {
+                log(msgSpace ,"实际值与源模板格式不符");
+                return;
+            }
+            resultValue = firStr.substring(0, firStr.indexOf(endStr));// 第一个变量实际值
+        }
+    } else {
+        var endStr = reTemp.substring(firIndex+1).substring(2, endIdex);// 第一个变量与第二个变量中间位置字符串
+        resultValue = firStr.substring(0, firStr.indexOf(endStr));// 第一个变量实际值
+    }
+    var resultKey = reTemp.substring(firIndex, firIndex+3);//第一个变量值
+    
+    params[resultKey] = resultValue;
+    replaceStr(reTemp.substring(reTemp.indexOf(resultKey)+resultKey.length), value.substring(value.indexOf(resultValue)+resultValue.length));
+        
 }

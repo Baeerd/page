@@ -459,7 +459,8 @@
 										<!-- new widget -->
 										<div class="jarviswidget" id="widget-id-0">
 											<header>
-												<h2>配置文本模板</h2>                           
+												<h2>配置文本模板</h2>
+												<h2 id="formatTextMsg"></h2>
 											</header>
 											<!-- wrap div -->
 											<div>
@@ -490,7 +491,7 @@
 															<div class="control-group">
 																<label class="control-label" for="fileInput">上传文件</label>
 																<div class="controls">
-																	<input class="file-no-style" name="reFile" id="fileInput2" type="file" />
+																	<input class="file-no-style" name="reFile" id="reFileInputId" type="file" />
 																</div>
 															</div>
 															<div class="control-group info">
@@ -509,7 +510,21 @@
 																</div>
 															</div>
 															<div class="pull-right post-msg">
-																<a href="javascript:void(0)" class="btn medium btn-primary" id="post-btn-js">转换</a>
+																<a href="javascript:void(0)" class="btn medium" id="resetTemp">重置模板</a>
+																<input id="preCutInput" type="text" placeholder="待去除字符" />
+																<div class="input-prepend">
+																		<div class="btn-group">
+																				<button type="button" class="btn dropdown-toggle medium" data-toggle="dropdown">模板快捷格式 <span class="caret"></span></button>
+																				<ul class="dropdown-menu btn-small">
+																					<li><a class="tempFormatInstance" href="javascript:void(0);">, 分隔</a></li>
+																					<li><a class="tempFormatInstance" href="javascript:void(0);">: 分隔</a></li>
+																					<li><a class="tempFormatInstance" href="javascript:void(0);">/ 分隔</a></li>
+																					<li><a class="tempFormatInstance" href="javascript:void(0);">- 分隔</a></li>
+																				</ul>
+																			</div>
+																			<input id="replaceStrInput" type="text" placeholder="可输入值自定义模板分隔符" />
+																</div>
+																<a href="javascript:void(0)" class="btn medium btn-primary" id="submitFormBtn">转换</a>
 															</div>   
 														</fieldset>
 													</form>
@@ -568,7 +583,7 @@
 																</div>
 																<input id="prependedDropdownButton" type="text" placeholder=".txt" />
 													</div>
-													<textarea id="wysihtml5" placeholder="" style="width: 100%; height: 250px;"></textarea>
+													<textarea id="tempOutTextarea" placeholder="" style="width: 100%; height: 250px;"></textarea>
 													
 													<div class="pull-right post-msg">
 														<a href="javascript:void(0)" class="btn medium" id="save-notes-btn-js">下载文件</a>
@@ -686,6 +701,7 @@
     <!-- Link to Google CDN's jQuery + jQueryUI; fall back to local -->
 	<script src="js/jquery.min.js"></script>
 	<!-- user scripts -->
+	<script src="js/plugin/plugin.js"></script>
 	<script src="js/format/format.js"></script>
 
     <script>window.jQuery || document.write('<script src="js/libs/jquery.min.js"><\/script>')</script>
