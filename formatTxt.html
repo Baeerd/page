@@ -491,13 +491,13 @@
 															<div class="control-group">
 																<label class="control-label" for="fileInput">上传文件</label>
 																<div class="controls">
-																	<input class="file-no-style" name="reFile" id="reFileInputId" type="file" />
+																	<input class="file-no-style resetInput" name="reFile" id="reFileInputId" type="file" />
 																</div>
 															</div>
 															<div class="control-group info">
 																<label class="control-label" for="inputInfo">源文本模板</label>
 																<div class="controls">
-																	<input type="text" name="reStrTemp" id="reCount" class="span12 textTemp" />
+																	<input type="text" name="reStrTemp" id="reCount" class="span12 textTemp resetInput" required="required"/>
 																	<span class="help-inline textTempSpan">设置源文本模板</span>
 																	<span class="help-inline textTempSpan"></span>
 																</div>
@@ -505,13 +505,13 @@
 															<div class="control-group success">
 																<label class="control-label" for="inputSuccess">目标文本模板</label>
 																<div class="controls">
-																	<input type="text" name="deStrTemp" id="deCount" class="span12 textTemp" />
+																	<input type="text" name="deStrTemp" id="deCount" class="span12 textTemp resetInput" required="required"/>
 																	<span class="help-inline textTempSpan">设置目标文本模板</span>
 																</div>
 															</div>
 															<div class="pull-right post-msg">
 																<a href="javascript:void(0)" class="btn medium" id="resetTemp">重置模板</a>
-																<input id="preCutInput" type="text" placeholder="待去除字符" />
+																<input id="preCutInput" class="resetInput" type="text" placeholder="待去除字符" />
 																<div class="input-prepend">
 																		<div class="btn-group">
 																				<button type="button" class="btn dropdown-toggle medium" data-toggle="dropdown">模板快捷格式 <span class="caret"></span></button>
@@ -522,9 +522,9 @@
 																					<li><a class="tempFormatInstance" href="javascript:void(0);">- 分隔</a></li>
 																				</ul>
 																			</div>
-																			<input id="replaceStrInput" type="text" placeholder="可输入值自定义模板分隔符" />
+																			<input id="replaceStrInput" class="resetInput" type="text" placeholder="可输入值自定义模板分隔符" />
 																</div>
-																<a href="javascript:void(0)" class="btn medium btn-primary" id="submitFormBtn">转换</a>
+																<button class="btn medium btn-primary next" id="submitFormBtn">转换</button>
 															</div>   
 														</fieldset>
 													</form>
@@ -537,8 +537,6 @@
 									</article>
 								</div>
 								
-								<!-- end row-fluid -->
-	
 								<!-- 文本域 -->
 								<div class="row-fluid">
 									<!-- article -->	
@@ -581,7 +579,7 @@
 																		<li><a href="javascript:void(0);">xml</a></li>
 																	</ul>
 																</div>
-																<input id="prependedDropdownButton" type="text" placeholder=".txt" />
+																<input id="prependedDropdownButton" class="resetInput" type="text" placeholder=".txt" />
 													</div>
 													<textarea id="tempOutTextarea" placeholder="" style="width: 100%; height: 250px;"></textarea>
 													

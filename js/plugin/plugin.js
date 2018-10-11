@@ -12,28 +12,34 @@ String.prototype.replaceAll = function(reallyDo, replaceWith, ignoreCase) {
 
 /**
  * 显示提示信息
- * @param {*} event 
  * @param {*} msg 
  */
-function log(event, msg) {
-    msg = "=====================<font color='"+color+"'>" + msg + "</font>=====================";
-    event.html(msg);
+function log(msg) {
+    toastr.info(msg);
 }
 
 /**
  * 显示错误信息
- * @param {*} event 
  * @param {*} msg 
  */
-function error(event, msg) {
-    var i = 0;
-    while(i<15) {
-        msg+="&nbsp;";
-        i++;
-    }
-    msg = "=====================<font color='"+color+"'>" + msg + "</font>=====================";
-    event.html(msg);
-    return true;
+function error(msg) {
+    toastr.error(msg);
+}
+
+/**
+ * 显示成功信息
+ * @param {*} msg 
+ */
+function success(msg) {
+    toastr.success(msg);
+}
+
+/**
+ * 显示警告信息
+ * @param {*} msg 
+ */
+function warning(msg) {
+    toastr.warning(msg);
 }
 
 /**

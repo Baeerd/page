@@ -30,6 +30,8 @@ $(function() {
 /*========================全局变量=====================================*/
 var reCount = 1;
 var deCount = 1;
+var diffLine = '';
+var diffFlag = false;
 var msgSpace = $("#formatTextMsg");
 var params = {};
 /*========================全局变量=====================================*/
@@ -47,7 +49,7 @@ function reTextTemplateListener() {
             var inputInfoVal =  $(this).val();
             var resultStr = '';
             console.log(lastTxt);
-                console.log(inputInfoVal);
+            console.log(inputInfoVal);
             // 原字符串与新字符串不一样，将不一样的地方替换
             if(lastTxt != inputInfoVal) {
                 resultStr = replaceDiff(lastTxt, inputInfoVal, $(this));
@@ -66,6 +68,7 @@ function reTextTemplateListener() {
         if(!inputInfoVal) {
             //重置模板
             resetTemp();
+            clean(msgSpace);
             return;
         }
         lastTxt = getSpanHtml($(this).next().html());
@@ -113,7 +116,7 @@ function replaceDiff(reText, deText, event) {
     // 如果全部相同没有更改
     
     if(!changeFlag && reText.indexOf("#") == -1) {
-        log(msgSpace, "模板字符全部相同，重新填写源文本");
+        error("模板字符全部相同，重新填写源文本");
         return;
     }
     var diffStr = reText.substr(i, diffLength);//需要替换的字符串
@@ -188,7 +191,21 @@ function submitForm() {
     $("#submitFormBtn").click(function() {
         var tempOutTextarea = $("#tempOutTextarea").val();
         var reFileInputId = $("#reFileInputId").val();
-        // 如果没有上传的文件，检查是否在文本域输入值，存在则转换文本域中的值
+        // 校验
+        var reCount = $("#reCount").val();
+        var deCount = $("#deCount").val();
+        // if(!reCount) {
+        //     log("源模板不能为空");
+        //     return;
+        // }
+        // if(!deCount) {
+        //     log("目标模板不能为空");
+        //     return;
+        // }
+        if(!tempOutTextarea && !reFileInputId) {
+            log("源文本不能为空");
+            return;
+        }
         // 如果存在文件，则访问后台，上传文件
         if(reFileInputId) {
             var url = "";
@@ -259,7 +276,7 @@ function autoShowTempListener() {
                 return;
             }
             if(cutStr == '#') {
-                log(msgSpace, "分隔符不能为#");
+                error("分隔符不能为#");
                 return;
             }
             var resultStr = changeReTempInput(cutStr);
@@ -274,7 +291,7 @@ function autoShowTempListener() {
             return;
         }
         if(cutStr == '#') {
-            log(msgSpace, "分隔符不能为#");
+            error("分隔符不能为#");
             return;
         }
         var resultStr = changeReTempInput(cutStr);
@@ -290,11 +307,11 @@ function autoShowTempListener() {
             return;
         }
         if(!resultStr) {
-            log(msgSpace, "源文本框没有值");
+            log("源文本框没有值");
             return;
         }
         if(resultStr.indexOf(preStr) == -1) {
-            log(msgSpace, "源文本模板不包含去除字段："+preStr);
+            log("源文本模板不包含去除字段："+preStr);
 
         }
         resultStr = resultStr.replaceAll(preStr, "");
@@ -309,11 +326,11 @@ function autoShowTempListener() {
             return;
         }
         if(!resultStr) {
-            log(msgSpace, "源文本框没有值");
+            log("源文本框没有值");
             return;
         }
         if(resultStr.indexOf(preStr) == -1) {
-            log(msgSpace, "源文本模板不包含去除字段："+preStr);
+            log("源文本模板不包含去除字段："+preStr);
 
         }
         resultStr = resultStr.replaceAll(preStr, "");
@@ -330,13 +347,13 @@ function changeReTempInput(cutStr) {
     // 获取源文本模板文本框的值
     var reTempInput = $("#reCount").val();
     if(!reTempInput) {
-        log(msgSpace, "源文本框没有值");
+        log("源文本框没有值");
         return;
     }
     var c = 1;
     var cutStrArr = reTempInput.split(cutStr);
     if(cutStrArr.length == 1) {
-        log(msgSpace, "模板不存在此分隔符："+cutStr);
+        error("模板不存在此分隔符："+cutStr);
         return reTempInput;
     }
     
@@ -355,6 +372,8 @@ function changeReTempInput(cutStr) {
 function resetTempListener() {
     $("#resetTemp").click(function() {
         resetTemp();
+        clean(msgSpace);
+        $("#tempOutTextarea").val("");
     });
 }
 
@@ -368,11 +387,11 @@ function resetTemp() {
     $(".textTempSpan:eq(0)").html("设置源文本模板");
     $(".textTempSpan:eq(1)").html("");
     $(".textTempSpan:eq(2)").html("设置目标文本模板");
-    $("#reCount").val("");
-    $("#deCount").val("");
-    // 清空文本域
-    $("#tempOutTextarea").val("");
-    $("#reFileInputId").val("");
+    $(".resetInput").val("");
+
+    diffLine = '';
+    diffFlag = false;
+    params = {};
 }
 
 /**
@@ -385,7 +404,11 @@ function formatText(msg, reTemp, deTemp) {
     var msgArr = msg.split("\n");
     var resultStr = "";
     for(var i=0; i<msgArr.length; i++) {
-        replaceStr(reTemp, msgArr[i]);
+        if(msgArr[i].trim() == "") {
+            resultStr += msgArr[i]+"\r\n";
+            continue;
+        }
+        replaceStr(reTemp, msgArr[i], i);
         console.log(params);
         var result = deTemp;
         for(var key in params) {
@@ -395,6 +418,12 @@ function formatText(msg, reTemp, deTemp) {
         // 清空params
         params = {};
     }
+    if(diffFlag) {
+        resetTemp();
+        return msg;
+    }
+    diffFlag = false;
+    success("生成成功");
     return resultStr;
 }
 
@@ -402,8 +431,9 @@ function formatText(msg, reTemp, deTemp) {
  * 生成占位符与实际值对应关系
  * @param {*} reTemp 
  * @param {*} value 
+ * @param {*} line
  */
-function replaceStr(reTemp, value) {
+function replaceStr(reTemp, value, line) {
 
     var firIndex = reTemp.indexOf("#");
     if(firIndex == -1) {
@@ -419,7 +449,15 @@ function replaceStr(reTemp, value) {
             resultValue = firStr.substring(0);// 第一个变量实际值
         } else {
             if(firStr.indexOf(endStr) == -1) {
-                log(msgSpace ,"实际值与源模板格式不符");
+                // 记录错误行号
+                diffLine += line;
+                if(diffLine.split("、").length <= 10) {
+                    error("第"+diffLine+"行实际值与源模板格式不符");
+                } else {
+                    error("实际值与源模板格式不符");
+                }
+                diffFlag = true;
+                diffLine += '、';
                 return;
             }
             resultValue = firStr.substring(0, firStr.indexOf(endStr));// 第一个变量实际值
@@ -432,5 +470,4 @@ function replaceStr(reTemp, value) {
     
     params[resultKey] = resultValue;
     replaceStr(reTemp.substring(reTemp.indexOf(resultKey)+resultKey.length), value.substring(value.indexOf(resultValue)+resultValue.length));
-        
 }
