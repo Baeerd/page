@@ -19,6 +19,30 @@ function log(msg) {
 }
 
 /**
+ * alert弹窗
+ * @param {*} msg 
+ */
+function alert(msg) {
+    bootbox.alert(msg, function() {
+        console.log(msg + " callback");
+    });
+}
+
+/**
+ * confirm确认框
+ * @param {*} msg 
+ * @param {*} callback 
+ */
+function confirm(msg, callback) {
+    bootbox.confirm(msg, function(result) {
+        console.log("Confirm result: "+result);
+        if(callback) {
+            callback(result);
+        }
+   });
+}
+
+/**
  * 显示错误信息
  * @param {*} msg 
  */

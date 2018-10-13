@@ -25,15 +25,27 @@ $(function() {
      */
     resetTempListener();
 
+    /**
+     * 生成sql语句按钮监听
+     */
+    generatorSqlBtnListener();
+
 });
 
 /*========================全局变量=====================================*/
-var reCount = 1;
-var deCount = 1;
-var diffLine = '';
-var diffFlag = false;
-var msgSpace = $("#formatTextMsg");
-var params = {};
+/*****文本格式内容转换相关********/
+var reCount = 1;//源文本模板计数
+var deCount = 1;//目标文本模板计数
+var diffLine = '';//模板与源数据不符行数
+var diffFlag = false;//模板与数据是否不同
+var params = {};//生成文本时占位符与源数据对应json
+
+/*****生成sql语句相关********/
+var name = "#01";//字段名称
+var remark = "#02";//字段备注
+var type = "#03";//字段类型
+var length = "#04";//字段长度
+
 /*========================全局变量=====================================*/
 
 
@@ -68,12 +80,12 @@ function reTextTemplateListener() {
         if(!inputInfoVal) {
             //重置模板
             resetTemp();
-            clean(msgSpace);
+            
             return;
         }
         lastTxt = getSpanHtml($(this).next().html());
         $(this).next().html(inputInfoVal);
-        clean(msgSpace);
+        
     }); 
 }
 
@@ -194,16 +206,16 @@ function submitForm() {
         // 校验
         var reCount = $("#reCount").val();
         var deCount = $("#deCount").val();
-        // if(!reCount) {
-        //     log("源模板不能为空");
-        //     return;
-        // }
-        // if(!deCount) {
-        //     log("目标模板不能为空");
-        //     return;
-        // }
+        if(!reCount) {
+            log("源模板不能为空！");
+            return;
+        }
+        if(!deCount) {
+            log("目标模板不能为空！");
+            return;
+        }
         if(!tempOutTextarea && !reFileInputId) {
-            log("源文本不能为空");
+            log("源文本不能为空！");
             return;
         }
         // 如果存在文件，则访问后台，上传文件
@@ -259,20 +271,33 @@ function submitForm() {
 function autoShowTempListener() {
     // 监听下拉框
     $(".tempFormatInstance").click(function() {
-        var cutStr = $(this).html().substr(0,1); //分隔符
-        $("#replaceStrInput").val(cutStr);
-        // 更改源模板文本框
-        var resultStr = changeReTempInput(cutStr);
+        var selectStr = $(this).html();
+        var resultStr = $("#reCount").val();
+        // 如果是excel的分隔符特殊处理
+        if(selectStr.indexOf("excel") != -1) {
+            var resultValArr = resultStr.split(' ');
+            var c=1;
+            for(var i=0; i<resultValArr.length; i++) {
+                if(resultValArr[i].trim() == '') {
+                    continue;
+                }
+                resultStr = resultStr.replace(resultValArr[i].trim(), c<10?'#0'+c:'#'+c);
+                c++;
+            }
+        } else {
+            var cutStr = selectStr.substr(0,1); //分隔符
+            $("#replaceStrInput").val(cutStr);
+            // 更改源模板文本框
+            var resultStr = changeReTempInput(cutStr);
+        }
         $("#reCount").val(resultStr);
         printHtml($("#reCount").next(), resultStr);
-
     });
     // 监听自定义分隔符文本框
     $("#replaceStrInput").keyup(function(event) {
         if(event.keyCode == 13) {
             var cutStr = $(this).val();
             if(!cutStr) {
-                clean(msgSpace);
                 return;
             }
             if(cutStr == '#') {
@@ -287,7 +312,6 @@ function autoShowTempListener() {
     $("#replaceStrInput").blur(function () {
         var cutStr = $(this).val();
         if(!cutStr) {
-            clean(msgSpace);
             return;
         }
         if(cutStr == '#') {
@@ -303,7 +327,6 @@ function autoShowTempListener() {
         var preStr = $(this).val();
         var resultStr = $("#reCount").val();
         if(!preStr) {
-            clean(msgSpace);
             return;
         }
         if(!resultStr) {
@@ -312,7 +335,6 @@ function autoShowTempListener() {
         }
         if(resultStr.indexOf(preStr) == -1) {
             log("源文本模板不包含去除字段："+preStr);
-
         }
         resultStr = resultStr.replaceAll(preStr, "");
         $("#reCount").val(resultStr);
@@ -322,7 +344,6 @@ function autoShowTempListener() {
             var preStr = $(this).val();
         var resultStr = $("#reCount").val();
         if(!preStr) {
-            clean(msgSpace);
             return;
         }
         if(!resultStr) {
@@ -334,7 +355,7 @@ function autoShowTempListener() {
 
         }
         resultStr = resultStr.replaceAll(preStr, "");
-        $("#reCount").val(resultStr);
+            $("#reCount").val(resultStr);
         }
     });
 }
@@ -362,7 +383,7 @@ function changeReTempInput(cutStr) {
         c++;
     }
     reCount = c;
-    clean(msgSpace);
+    
     return reTempInput;
 }
 
@@ -372,7 +393,6 @@ function changeReTempInput(cutStr) {
 function resetTempListener() {
     $("#resetTemp").click(function() {
         resetTemp();
-        clean(msgSpace);
         $("#tempOutTextarea").val("");
     });
 }
@@ -470,4 +490,124 @@ function replaceStr(reTemp, value, line) {
     
     params[resultKey] = resultValue;
     replaceStr(reTemp.substring(reTemp.indexOf(resultKey)+resultKey.length), value.substring(value.indexOf(resultValue)+resultValue.length));
+}
+
+/**
+ * 生成SQL语句按钮监听
+ */
+function generatorSqlBtnListener() {
+    $("#generatorSqlBtn").click(function() {
+        var tempOutTextarea = $("#tempOutTextarea").val();
+        var sqlFileInputId = $("#sqlFileInputId").val();
+        // 校验
+        var tableNameInput = $("#tableNameInput").val();
+        var reCount = $("#reCount").val();
+        if(!tableNameInput) {
+            log("表名不能为空！");
+            return;
+        }
+        if(!reCount) {
+            log("文件模板不能为空！");
+            return;
+        }
+        if(!tempOutTextarea && !sqlFileInputId) {
+            log("源文本不能为空！");
+            return;
+        }
+        // 如果存在文件，则访问后台，上传文件
+        if(sqlFileInputId) {
+            var url = "";
+            // TODO ajax上传表单到后台
+            var formData = new FormData();
+            // formData.append(name, element);
+            formData.append('reFile', $('input[name=reFile]')[0].files[0]); //源文本文件
+            formData.append('reStrTemp', $('input[name=reStrTemp]')[0].val()); //源文本模板
+            formData.append('deStrTemp', $('input[name=reFile]')[0].val());//目标文本模板
+
+            $.ajax({
+                url: url,
+                method: 'POST',
+                    data: formData,
+                    contentType: false,
+                    processData: false,
+                    cache: false,
+                    success: function(data) {
+                        // TODO 将文本输出到textarea上
+                        alert(data + "上传成功");
+                    },
+                    error: function (jqXHR) {
+                        console.log(JSON.stringify(jqXHR));
+                    }
+                })
+                .done(function(data) {
+                    console.log('done');
+                })
+                .fail(function(data) {
+                    console.log('fail');
+                })
+                .always(function(data) {
+                    console.log('always');
+            });
+        } else if(!sqlFileInputId && tempOutTextarea) {
+            // 没有上传文件，并且文本域中有值，则解析文本域中的文本
+            var resultStr = generatorCreateSqlText(tableNameInput, reCount, tempOutTextarea);
+            $("#tempOutTextarea").val(resultStr);
+        } else {
+            return;
+        }
+    });
+}
+
+/**
+ * 根据表名和模板生成创建sql语句
+ * @param {表名} tableName 
+ * @param {文本模板} tableTemp 
+ * @param {文本内容} tempOutTextarea 
+ */
+function generatorCreateSqlText(tableName, tableTemp, tempOutTextarea) {
+    var tableNames;
+    tableNames = tableName.split(",");
+    if(!tableNames[1]) {
+        tableNames = tableName.split("，");
+    }
+    if(!tableNames[1]) {
+        tableNames = tableName.split(":");
+    }
+    var result1 = "create table "+tableNames[0]+"\r\n(\r\n";
+    var result2 = "";
+    if(tableNames[1]) {
+        result2 = "comment on table "+tableNames[0]+"\r\n  is '"+tableNames[1]+"';\r\n";
+    }
+
+
+
+    /****************************************** */
+    var msgArr = tempOutTextarea.split("\n");
+    for(var i=0; i<msgArr.length; i++) {
+        if(msgArr[i].trim() == "") {
+            continue;
+        }
+        replaceStr(tableTemp, msgArr[i], i);
+        console.log(params);
+        //params[name]字段名称
+        //params[remark]字段备注
+        //params[type]字段类型
+        //params[length]字段长度
+        if(i == msgArr.length-1) {
+            result1 += "  "+params[name]+"          "+params[type]+"("+params[length]+")\r\n";
+        } else {
+            result1 += "  "+params[name]+"          "+params[type]+"("+params[length]+"),\r\n";
+        }
+        result2 += "comment on column "+tableNames[0]+"."+params[name]+"\r\n  is '"+params[remark]+"';\r\n";
+
+        // 清空params
+        params = {};
+    }
+    result1 += ");\r\n";
+    success("生成成功");
+    return result1+result2;
+
+
+
+
 }

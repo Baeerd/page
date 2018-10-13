@@ -434,7 +434,7 @@
 				<!-- main 显示内容面板 -->
 				<div id="page-content">
 					<!-- 面板标题 -->
-					<h1 id="page-header">文本格式内容转换</h1>	
+					<h1 id="page-header">生成sql语句</h1>	
 
 					<!-- 面板提示行 -->
 					<div class="alert adjusted alert-info">
@@ -460,26 +460,7 @@
 											</header>
 											<!-- wrap div -->
 											<div>
-											
-												<div class="jarviswidget-editbox">
-													<div>
-														<label>Title:</label>
-														<input type="text" />
-													</div>
-													<div>
-														<label>Styles:</label>
-														<span data-widget-setstyle="purple" class="purple-btn"></span>
-														<span data-widget-setstyle="navyblue" class="navyblue-btn"></span>
-														<span data-widget-setstyle="green" class="green-btn"></span>
-														<span data-widget-setstyle="yellow" class="yellow-btn"></span>
-														<span data-widget-setstyle="orange" class="orange-btn"></span>
-														<span data-widget-setstyle="pink" class="pink-btn"></span>
-														<span data-widget-setstyle="red" class="red-btn"></span>
-														<span data-widget-setstyle="darkgrey" class="darkgrey-btn"></span>
-														<span data-widget-setstyle="black" class="black-btn"></span>
-													</div>
-												</div>
-				
+
 												<div class="inner-spacer"> 
 												<!-- content goes here -->
 													<form class="form-horizontal themed" />
@@ -487,27 +468,52 @@
 															<div class="control-group">
 																<label class="control-label" for="fileInput">上传文件</label>
 																<div class="controls">
-																	<input class="file-no-style resetInput" name="reFile" id="reFileInputId" type="file" />
+																	<input class="file-no-style" name="reFile" id="sqlFileInputId" type="file" />
 																</div>
 															</div>
 															<div class="control-group info">
-																<label class="control-label" for="inputInfo">源文本模板</label>
+																<label class="control-label" for="inputInfo">表名</label>
 																<div class="controls">
-																	<input type="text" name="reStrTemp" id="reCount" class="span12 textTemp resetInput" autocomplete="off" required="required"/>
-																	<span class="help-inline textTempSpan">设置源文本模板</span>
-																	<span class="help-inline textTempSpan"></span>
+																	<input type="text" id="tableNameInput" class="span12 textTemp resetInput" autocomplete="off" required="required" placeholder="格式：表名,中文备注（中文名称可省略）"/>
 																</div>
 															</div>
 															<div class="control-group success">
-																<label class="control-label" for="inputSuccess">目标文本模板</label>
+																<label class="control-label" for="inputSuccess">文本模板</label>
 																<div class="controls">
-																	<input type="text" name="deStrTemp" id="deCount" class="span12 textTemp resetInput" autocomplete="off" required="required"/>
-																	<span class="help-inline textTempSpan">设置目标文本模板</span>
+																	<input type="text" id="reCount" name="deStrTemp"class="span12 textTemp resetInput" autocomplete="off" required="required"/>
+																	<span class="help-inline textTempSpan">设置文本模板</span>
 																</div>
 															</div>
+
+
+											
+															<div class="inner-spacer widget-content-padding show-in-middle" style="background:rgba(216, 248, 250, 0.801)"> 
+																	<button type="button" class="btn btn-success">字段名称</button>
+																	<button type="button" class="btn btn-danger">字段备注</button>
+																	<button type="button" class="btn btn-warning">字段类型</button>
+																	<button type="button" class="btn btn-primary">字段长度</button>
+																	<button type="button" class="btn btn-link"><i class="cus-arrow-refresh"></i></button>
+																
+																	<h5>
+																			模板默认顺序：
+																			<font color="green">字段名称</font>、
+																			<font color="red">字段备注</font>、
+																			<font color="yellow">字段类型</font>、
+																			<font color="blue">字段长度</font>
+																	</h5>
+																
+																<!--
+																	<button type="button" class="btn disabled btn-success">字段名称</button>
+																	<button type="button" class="btn disabled btn-danger">字段备注</button>
+																	<button type="button" class="btn disabled btn-warning">字段类型</button>
+																	<button type="button" class="btn disabled btn-primary">字段长度</button>
+																-->
+															</div>
+
+
 															<div class="pull-right post-msg">
 																<a href="javascript:void(0)" class="btn medium" id="resetTemp">重置模板</a>
-																<input id="preCutInput" class="resetInput" type="text" placeholder="待去除字符" />
+																<input id="preCutInput" type="text" class="resetInput" placeholder="待去除字符" />
 																<div class="input-prepend">
 																		<div class="btn-group">
 																				<button type="button" class="btn dropdown-toggle medium" data-toggle="dropdown">模板快捷格式 <span class="caret"></span></button>
@@ -516,12 +522,11 @@
 																					<li><a class="tempFormatInstance" href="javascript:void(0);">: 分隔</a></li>
 																					<li><a class="tempFormatInstance" href="javascript:void(0);">/ 分隔</a></li>
 																					<li><a class="tempFormatInstance" href="javascript:void(0);">- 分隔</a></li>
-																					<li><a class="tempFormatInstance" href="javascript:void(0);">excel分隔</a></li>
 																				</ul>
 																			</div>
 																			<input id="replaceStrInput" class="resetInput" type="text" placeholder="可输入值自定义模板分隔符" />
 																</div>
-																<a class="btn medium btn-primary next" id="submitFormBtn">转换</a>
+																<a class="btn medium btn-primary next" id="generatorSqlBtn">转换</a>
 															</div>   
 														</fieldset>
 													</form>
